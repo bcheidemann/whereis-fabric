@@ -3,36 +3,34 @@
   "id": "modid",
   "version": "${version}",
 
-  "name": "Example Mod",
-  "description": "This is an example description! Tell everyone what your mod is about!",
+  "name": "WhereIs",
+  "description": "Find points of interest",
   "authors": [
-    "Me!"
+    "Ben Heidemann"
   ],
   "contact": {
-    "homepage": "https://fabricmc.net/",
-    "sources": "https://github.com/FabricMC/fabric-example-mod"
+    "homepage": "https://github.com/bcheidemann/whereis-fabric",
+    "sources": "https://github.com/bcheidemann/whereis-fabric"
   },
 
   "license": "CC0-1.0",
-  "icon": "assets/modid/icon.png",
+  "icon": "assets/icon.png",
 
   "environment": "*",
   "entrypoints": {
     "main": [
-      "net.fabricmc.example.ExampleMod"
+      "net.fabricmc.whereis.WhereIs"
     ]
   },
   "mixins": [
-    "modid.mixins.json"
+    "whereis.mixins.json"
   ],
 
   "depends": {
     "fabricloader": ">=0.14.10",
-    "fabric-api": "*",
+    "fabric": "*",
     "minecraft": "~1.19",
     "java": ">=17"
   },
-  "suggests": {
-    "another-mod": "*"
-  }
+  "suggests": {}
 }
