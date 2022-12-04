@@ -11,7 +11,6 @@ import net.minecraft.text.TextColor;
 import net.minecraft.util.math.Vec3d;
 
 public class Location {
-  private static final Logger LOGGER = LoggerFactory.getLogger("whereis");
   public String owner;
   public String alias;
   public String dimension;

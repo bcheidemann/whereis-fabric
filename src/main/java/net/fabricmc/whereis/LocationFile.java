@@ -128,33 +128,25 @@ public class LocationFile {
   // Move location
   public void moveLocation(Location newLocation) throws IOException {
     try {
-      Boolean moved = false;
-      Integer removed = 0;
+      ArrayList<Location> removed = new ArrayList<Location>();
       for (Location location : this.locations) {
         if (
           location.alias.toLowerCase().equals(newLocation.alias.toLowerCase())
           && location.owner.equals(newLocation.owner)
         ) {
-          this.locations.remove(location);
-          if (!moved) {
-            this.locations.add(newLocation);
-            moved = true;
-          }
-          else {
-            removed++;
-          }
+          removed.add(location);
         }
       }
-
-      if (!moved) {
-        this.locations.add(newLocation);
+      for (Location removedLocation : removed) {
+        this.locations.remove(removedLocation);
       }
+      this.locations.add(newLocation);
 
       this.save();
 
       LOGGER.info("Moved location \"" + newLocation.alias + "\"");
-      if (removed > 0) {
-        LOGGER.warn("Removed " + removed + " duplicate locations");
+      if (removed.size() > 1) {
+        LOGGER.warn("Removed " + (removed.size() - 1) + " duplicate locations");
       }
     }
     catch (IOException e) {
@@ -209,22 +201,29 @@ public class LocationFile {
   // Remove location
   public void removeLocation(String owner, String alias, String dimension) throws IOException {
     try {
-      Integer removed = 0;
+      ArrayList<Location> removed = new ArrayList<Location>();
       for (Location location : this.locations) {
         if (
           location.alias.toLowerCase().equals(alias.toLowerCase())
           && location.owner.equals(owner)
         ) {
-          this.locations.remove(location);
-          removed++;
+          removed.add(location);
         }
+      }
+      for (Location removedLocation : removed) {
+        this.locations.remove(removedLocation);
       }
 
       this.save();
 
-      LOGGER.info("Removed location \"" + alias + "\"");
-      if (removed > 1) {
-        LOGGER.warn("Removed " + (removed - 1) + " duplicate locations");
+      if (removed.size() > 0) {
+        LOGGER.info("Removed " + removed + " locations");
+        if (removed.size() > 1) {
+          LOGGER.warn("Removed " + (removed.size() - 1) + " duplicate locations");
+        }
+      }
+      else {
+        LOGGER.warn("No locations removed");
       }
     }
     catch (IOException e) {
