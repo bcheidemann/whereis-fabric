@@ -13,12 +13,16 @@ import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import net.minecraft.util.math.Vec3d;
-
 public class LocationFile {
+  static class LocationExistsError extends Exception {
+    public LocationExistsError(String message) {
+      super(message);
+    }
+  }
+
   private static final Logger LOGGER = LoggerFactory.getLogger("whereis");
   private String path = null;
-  private JSONArray locations = null;
+  private ArrayList<Location> locations = null;
 
   // Constructor
   public LocationFile(String path) throws IOException, ParseException {
@@ -34,7 +38,7 @@ public class LocationFile {
       LOGGER.info("Creating new location file at " + this.path);
       try {
         file.createNewFile();
-        this.locations = new JSONArray();
+        this.locations = new ArrayList<Location>();
         this.save();
       }
       catch (IOException e) {
@@ -50,8 +54,14 @@ public class LocationFile {
     try {
       FileReader reader = new FileReader(this.path);
       JSONParser parser = new JSONParser();
-      this.locations = (JSONArray) parser.parse(reader);
+      JSONArray locationsArray = (JSONArray) parser.parse(reader);
       reader.close();
+
+      this.locations = new ArrayList<Location>();
+      for (Object locationObject : locationsArray) {
+        Location location = Location.fromJSON((JSONObject) locationObject);
+        this.locations.add(location);
+      }
     }
     catch (IOException e) {
       LOGGER.error("Failed to load location file at " + this.path);
@@ -69,7 +79,11 @@ public class LocationFile {
 
     try {
       FileWriter writer = new FileWriter(this.path);
-      writer.write(this.locations.toJSONString());
+      JSONArray locationsArray = new JSONArray();
+      for (Location location : this.locations) {
+        locationsArray.add(location.toJSON());
+      }
+      writer.write(locationsArray.toJSONString());
       writer.flush();
       writer.close();
     }
@@ -82,23 +96,66 @@ public class LocationFile {
   }
 
   // Add location
-  public void addLocation(String alias, Vec3d location) throws IOException {
+  public void addLocation(Location newLocation) throws IOException, LocationExistsError {
     try {
-      JSONObject coords = new JSONObject();
-      coords.put("x", location.x);
-      coords.put("y", location.y);
-      coords.put("z", location.z);
+      for (Location location : this.locations) {
+        if (
+          location.alias.toLowerCase().equals(newLocation.alias.toLowerCase())
+          && location.owner.equals(newLocation.owner)
+        ) {
+          String message = String.format(
+            "Location %s already exists for %s in %s",
+            newLocation.alias,
+            newLocation.owner,
+            newLocation.dimension
+          );
+          LOGGER.error(message);
+          throw new LocationExistsError(message);
+        }
+      }
 
-      JSONObject locationObject = new JSONObject();
-      locationObject.put("alias", alias);
-      locationObject.put("coords", coords);
-      // TODO: Add dimension
-      // TODO: Add world
-
-      this.locations.add(locationObject);
+      this.locations.add(newLocation);
       this.save();
 
-      LOGGER.info("Added location \"" + alias + "\" to " + this.path);
+      LOGGER.info("Added location \"" + newLocation.alias + "\" to " + this.path);
+    }
+    catch (IOException e) {
+      LOGGER.error("Failed to write to location file at " + this.path);
+      throw e;
+    }
+  }
+
+  // Move location
+  public void moveLocation(Location newLocation) throws IOException {
+    try {
+      Boolean moved = false;
+      Integer removed = 0;
+      for (Location location : this.locations) {
+        if (
+          location.alias.toLowerCase().equals(newLocation.alias.toLowerCase())
+          && location.owner.equals(newLocation.owner)
+        ) {
+          this.locations.remove(location);
+          if (!moved) {
+            this.locations.add(newLocation);
+            moved = true;
+          }
+          else {
+            removed++;
+          }
+        }
+      }
+
+      if (!moved) {
+        this.locations.add(newLocation);
+      }
+
+      this.save();
+
+      LOGGER.info("Moved location \"" + newLocation.alias + "\"");
+      if (removed > 0) {
+        LOGGER.warn("Removed " + removed + " duplicate locations");
+      }
     }
     catch (IOException e) {
       LOGGER.error("Failed to write to location file at " + this.path);
@@ -107,21 +164,15 @@ public class LocationFile {
   }
 
   // Find locations
-  public ArrayList<Location> findLocations(String alias) {
-    LOGGER.info("A");
+  public ArrayList<Location> findLocations(String alias, String dimension) {
     ArrayList<Location> foundLocations = new ArrayList<Location>();
-    LOGGER.info("B");
 
-    for (Object locationObject : this.locations) {
-      JSONObject location = (JSONObject) locationObject;
-      String locationAlias = (String) location.get("alias");
-      if (locationAlias.toLowerCase().contains(alias.toLowerCase())) {
-        JSONObject coords = (JSONObject) location.get("coords");
-        double x = (double) coords.get("x");
-        double y = (double) coords.get("y");
-        double z = (double) coords.get("z");
-        String foundAlias = (String) location.get("alias");
-        foundLocations.add(new Location(foundAlias, new Vec3d(x, y, z)));
+    for (Location location : this.locations) {
+      if (
+        location.alias.toLowerCase().contains(alias.toLowerCase())
+        && location.dimension.equals(dimension)
+      ) {
+        foundLocations.add(location);
       }
     }
 
@@ -129,19 +180,42 @@ public class LocationFile {
   }
 
   // Get all locations
-  public ArrayList<Location> getLocations() {
+  public ArrayList<Location> getLocations(String dimesnion) {
     ArrayList<Location> foundLocations = new ArrayList<Location>();
 
-    for (Object locationObject : this.locations) {
-      JSONObject location = (JSONObject) locationObject;
-      JSONObject coords = (JSONObject) location.get("coords");
-      double x = (double) coords.get("x");
-      double y = (double) coords.get("y");
-      double z = (double) coords.get("z");
-      String alias = (String) location.get("alias");
-      foundLocations.add(new Location(alias, new Vec3d(x, y, z)));
+    for (Location location : this.locations) {
+      if (location.dimension.equals(dimesnion)) {
+        foundLocations.add(location);
+      }
     }
 
     return foundLocations;
+  }
+
+  // Remove location
+  public void removeLocation(String owner, String alias, String dimension) throws IOException {
+    try {
+      Integer removed = 0;
+      for (Location location : this.locations) {
+        if (
+          location.alias.toLowerCase().equals(alias.toLowerCase())
+          && location.owner.equals(owner)
+        ) {
+          this.locations.remove(location);
+          removed++;
+        }
+      }
+
+      this.save();
+
+      LOGGER.info("Removed location \"" + alias + "\"");
+      if (removed > 1) {
+        LOGGER.warn("Removed " + (removed - 1) + " duplicate locations");
+      }
+    }
+    catch (IOException e) {
+      LOGGER.error("Failed to write to location file at " + this.path);
+      throw e;
+    }
   }
 }
