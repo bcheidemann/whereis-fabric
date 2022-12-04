@@ -1,8 +1,6 @@
 package net.fabricmc.whereis;
 
 import org.json.simple.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Style;
