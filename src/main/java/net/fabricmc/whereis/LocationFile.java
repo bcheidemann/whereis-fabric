@@ -163,14 +163,36 @@ public class LocationFile {
     }
   }
 
-  // Find locations
-  public ArrayList<Location> findLocations(String alias, String dimension) {
+  // Find owners locations
+  public ArrayList<Location> findLocations(String owner, String alias, String dimension) {
     ArrayList<Location> foundLocations = new ArrayList<Location>();
 
     for (Location location : this.locations) {
       if (
         location.alias.toLowerCase().contains(alias.toLowerCase())
         && location.dimension.equals(dimension)
+        && (owner == null || location.owner.equals(owner))
+      ) {
+        foundLocations.add(location);
+      }
+    }
+
+    return foundLocations;
+  }
+
+  // Find locations
+  public ArrayList<Location> findLocations(String alias, String dimension) {
+    return this.findLocations(null, alias, dimension);
+  }
+
+  // Get all owners locations
+  public ArrayList<Location> getLocations(String owner, String dimesnion) {
+    ArrayList<Location> foundLocations = new ArrayList<Location>();
+
+    for (Location location : this.locations) {
+      if (
+        location.dimension.equals(dimesnion)
+        && (owner == null || location.owner.equals(owner))
       ) {
         foundLocations.add(location);
       }
@@ -181,15 +203,7 @@ public class LocationFile {
 
   // Get all locations
   public ArrayList<Location> getLocations(String dimesnion) {
-    ArrayList<Location> foundLocations = new ArrayList<Location>();
-
-    for (Location location : this.locations) {
-      if (location.dimension.equals(dimesnion)) {
-        foundLocations.add(location);
-      }
-    }
-
-    return foundLocations;
+    return this.getLocations(null, dimesnion);
   }
 
   // Remove location
