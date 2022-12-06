@@ -176,7 +176,7 @@ public class LocationFile {
 
       if (
         owner != null
-        && !location.owner.equals(owner)
+        && !location.owner.toLowerCase().equals(owner.toLowerCase())
       ) {
         continue;
       }
