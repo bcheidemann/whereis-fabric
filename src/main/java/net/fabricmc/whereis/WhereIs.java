@@ -4,9 +4,7 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.whereis.LocationFile.LocationExistsError;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.Style;
 import net.minecraft.text.Text;
-import net.minecraft.text.TextColor;
 import net.minecraft.util.math.Vec3d;
 
 import org.slf4j.Logger;
@@ -15,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import com.mojang.brigadier.arguments.StringArgumentType;
 
 import java.io.IOException;
-import java.util.ArrayList;
 
 import org.json.simple.parser.ParseException;
 
@@ -43,113 +40,10 @@ public class WhereIs implements ModInitializer {
 			return;
 		}
 
-		Style MessageStyle = Style.EMPTY.withColor(TextColor.parse("aqua")).withItalic(true);
-
 		CommandRegistrationCallback.EVENT
 			.register(
 				(dispatcher, registryAccess, environment) -> {
-					dispatcher.register(
-						literal("whereis")
-							.then(
-								literal("my")
-								.then(
-									argument("alias", StringArgumentType.greedyString())
-										.executes(context -> {
-											ServerCommandSource source = context.getSource();
-											String alias = StringArgumentType.getString(context, "alias");
-											String dimension = source.getWorld().getDimensionKey().getValue().toString();
-											ArrayList<Location> foundLocations = locationFile.findLocations(source.getName(), alias, dimension);
-	
-											if (foundLocations.size() == 0) {
-												source.sendError(Text.literal("No markers found"));
-												return 0;
-											}
-	
-											source.sendFeedback(
-												Text
-													.literal("Found " + foundLocations.size() + " marker(s)...")
-													.setStyle(MessageStyle),
-												false
-											);
-											for (Location location : foundLocations) {
-												source.sendFeedback(location.toMutableText(), false);
-											}
-	
-											return 1;
-										})
-								)
-								.executes(context -> {
-									ServerCommandSource source = context.getSource();
-									String dimension = source.getWorld().getDimensionKey().getValue().toString();
-									ArrayList<Location> locations = locationFile.getLocations(source.getName(), dimension);
-	
-									if (locations.size() == 0) {
-										source.sendError(Text.literal("You have no markers. Run \"/hereis [Marker Name]\" to add a marker."));
-										return 0;
-									}
-	
-									source.sendFeedback(
-										Text
-											.literal("Found " + locations.size() + " marker(s)...")
-											.setStyle(MessageStyle),
-									false
-									);
-									for (Location location : locations) {
-										source.sendFeedback(location.toMutableText(), false);
-									}
-	
-									return 1;
-								})
-							)
-							.then(
-								argument("alias", StringArgumentType.greedyString())
-									.executes(context -> {
-										ServerCommandSource source = context.getSource();
-										String alias = StringArgumentType.getString(context, "alias");
-										String dimension = source.getWorld().getDimensionKey().getValue().toString();
-										ArrayList<Location> foundLocations = locationFile.findLocations(alias, dimension);
-
-										if (foundLocations.size() == 0) {
-											source.sendError(Text.literal("No markers found"));
-											return 0;
-										}
-
-										source.sendFeedback(
-											Text
-												.literal("Found " + foundLocations.size() + " marker(s)...")
-												.setStyle(MessageStyle),
-											false
-										);
-										for (Location location : foundLocations) {
-											source.sendFeedback(location.toMutableText(), false);
-										}
-
-										return 1;
-									})
-							)
-							.executes(context -> {
-								ServerCommandSource source = context.getSource();
-								String dimension = source.getWorld().getDimensionKey().getValue().toString();
-								ArrayList<Location> locations = locationFile.getLocations(dimension);
-
-								if (locations.size() == 0) {
-									source.sendError(Text.literal("No markers. Run \"/hereis [Marker Name]\" to add a marker."));
-									return 0;
-								}
-
-								source.sendFeedback(
-									Text
-										.literal("Found " + locations.size() + " marker(s)...")
-										.setStyle(MessageStyle),
-								false
-								);
-								for (Location location : locations) {
-									source.sendFeedback(location.toMutableText(), false);
-								}
-
-								return 1;
-							})
-					);
+					WhereIsCommand.register(locationFile, dispatcher);
 
 					dispatcher.register(
 						literal("hereis")

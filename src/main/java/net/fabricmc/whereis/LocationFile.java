@@ -161,20 +161,30 @@ public class LocationFile {
 
     for (Location location : this.locations) {
       if (
-        location.alias.toLowerCase().contains(alias.toLowerCase())
-        && location.dimension.equals(dimension)
-        && (owner == null || location.owner.equals(owner))
+        alias != null
+        && !location.alias.toLowerCase().contains(alias.toLowerCase())
       ) {
-        foundLocations.add(location);
+        continue;
       }
+
+      if (
+        dimension != null
+        && !location.dimension.equals(dimension)
+      ) {
+        continue;
+      }
+
+      if (
+        owner != null
+        && !location.owner.equals(owner)
+      ) {
+        continue;
+      }
+
+      foundLocations.add(location);
     }
 
     return foundLocations;
-  }
-
-  // Find locations
-  public ArrayList<Location> findLocations(String alias, String dimension) {
-    return this.findLocations(null, alias, dimension);
   }
 
   // Get all owners locations
