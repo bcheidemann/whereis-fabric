@@ -2,21 +2,13 @@ package net.fabricmc.whereis;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.fabricmc.whereis.LocationFile.LocationExistsError;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.Vec3d;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.mojang.brigadier.arguments.StringArgumentType;
-
 import java.io.IOException;
 
 import org.json.simple.parser.ParseException;
-
-import static net.minecraft.server.command.CommandManager.*;
 
 public class WhereIs implements ModInitializer {
 	public static final Logger LOGGER = LoggerFactory.getLogger("whereis");
@@ -46,6 +38,7 @@ public class WhereIs implements ModInitializer {
 					WhereIsCommand.register(locationFile, dispatcher);
 					HereIsCommand.register(locationFile, dispatcher);
 					ForgetCommand.register(locationFile, dispatcher);
+					RelocateCommand.register(locationFile, dispatcher);
 				}
 			);
 	}

@@ -7,19 +7,20 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 
-import net.fabricmc.whereis.LocationFile.LocationExistsError;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.text.Style;
 import net.minecraft.text.Text;
+import net.minecraft.text.TextColor;
 import net.minecraft.util.math.Vec3d;
 
 import static net.minecraft.server.command.CommandManager.*;
 
 import java.io.IOException;
 
-public class HereIsCommand {
+public class RelocateCommand {
 	public static final Logger LOGGER = LoggerFactory.getLogger("whereis");
 
-  static Integer hereIsImplementation(
+  static Integer relocateImplementation(
     LocationFile locationFile,
     CommandContext<ServerCommandSource> context,
     String owner,
@@ -30,9 +31,9 @@ public class HereIsCommand {
     String dimension = source.getWorld().getDimensionKey().getValue().toString();
 
     String savingMessage =
-      "Saving location \""
+      "Moving location \""
       + alias
-      + "\" at x="
+      + "\" to x="
       + Math.round(position.x)
       + ", y="
       + Math.round(position.y)
@@ -42,8 +43,15 @@ public class HereIsCommand {
       + dimension;
     source.sendFeedback(Text.literal(savingMessage), false);
 
+    int countMoved;
+
     try {
-      locationFile.addLocation(
+      countMoved = locationFile.moveLocation(
+        new LocationMeta(
+          owner,
+          alias,
+          dimension
+        ),
         new Location(
           owner,
           alias,
@@ -55,19 +63,19 @@ public class HereIsCommand {
     catch (IOException e) {
       LOGGER.error("Failed to write to location file: " + e.getMessage());
       e.printStackTrace();
-      String errorMessage = "Failed to save location \"" + alias + "\"";
+      String errorMessage = "Failed to move location \"" + alias + "\"";
       source.sendError(Text.literal(errorMessage));
       return -1;
-    } catch (LocationExistsError e) {
-      source.sendError(Text.literal(e.getMessage()));
-      source.sendFeedback(
-        // TODO: Send command suggestion
-        Text.literal("Location already exists. Did you mean to move the marker to your current location using /relocate?"),
-        false
-      );
-      LOGGER.info("Location not saved: " + alias);
-      return -1;
     }
+
+    source.sendFeedback(
+      Text
+        .literal("Moved " + countMoved + " location(s)...")
+        .setStyle(
+          Style.EMPTY.withColor(TextColor.parse("aqua")).withItalic(true)
+        ),
+      false
+    );
 
     return 0;
   }
@@ -77,12 +85,12 @@ public class HereIsCommand {
     CommandDispatcher<ServerCommandSource> dispatcher
   ) {
     dispatcher.register(
-      literal("hereis")
+      literal("relocate")
         .then(
           argument("alias", StringArgumentType.greedyString())
             .executes(context -> {
               String alias = StringArgumentType.getString(context, "alias");
-              return HereIsCommand.hereIsImplementation(locationFile, context, "*", alias);
+              return RelocateCommand.relocateImplementation(locationFile, context, "*", alias);
             })
         )
         .then(
@@ -92,7 +100,7 @@ public class HereIsCommand {
                 .executes(context -> {
                   String owner = context.getSource().getName();
                   String alias = StringArgumentType.getString(context, "alias");
-                  return HereIsCommand.hereIsImplementation(locationFile, context, owner, alias);
+                  return RelocateCommand.relocateImplementation(locationFile, context, owner, alias);
                 })
             )
         )
@@ -105,7 +113,7 @@ public class HereIsCommand {
                     .executes(context -> {
                       String owner = StringArgumentType.getString(context, "owner");
                       String alias = StringArgumentType.getString(context, "alias");
-                      return HereIsCommand.hereIsImplementation(locationFile, context, owner, alias);
+                      return RelocateCommand.relocateImplementation(locationFile, context, owner, alias);
                     })
                 )
             )

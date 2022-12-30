@@ -28,9 +28,12 @@ public class WhereIsCommand {
     ServerCommandSource source = context.getSource();
     String dimension = source.getWorld().getDimensionKey().getValue().toString();
     ArrayList<Location> foundLocations = locationFile.findLocations(
-      owner,
-      alias,
-      dimension
+      new LocationMeta(
+        owner,
+        alias,
+        dimension
+      ),
+      FindLocationMethod.FUZZY
     );
 
     if (foundLocations.size() == 0) {
@@ -64,8 +67,8 @@ public class WhereIsCommand {
           context -> WhereIsCommand.whereIsImplementation(
             locationFile,
             context,
-            null,
-            null
+            "*",
+            "*"
           )
         )
         .then(
@@ -76,7 +79,7 @@ public class WhereIsCommand {
                 return WhereIsCommand.whereIsImplementation(
                   locationFile,
                   context,
-                  null,
+                  "*",
                   alias
                 );
               }
@@ -91,7 +94,7 @@ public class WhereIsCommand {
                   locationFile,
                   context,
                   owner,
-                  null
+                  "*"
                 );
               }
             )
