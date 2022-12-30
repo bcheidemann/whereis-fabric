@@ -45,6 +45,7 @@ public class WhereIs implements ModInitializer {
 				(dispatcher, registryAccess, environment) -> {
 					WhereIsCommand.register(locationFile, dispatcher);
 					HereIsCommand.register(locationFile, dispatcher);
+					ForgetCommand.register(locationFile, dispatcher);
 				}
 			);
 	}

@@ -209,13 +209,15 @@ public class LocationFile {
   }
 
   // Remove location
-  public void removeLocation(String owner, String alias, String dimension) throws IOException {
+  public int removeLocation(LocationMeta locationMeta) throws IOException {
+    ArrayList<Location> removed = new ArrayList<Location>();
+
     try {
-      ArrayList<Location> removed = new ArrayList<Location>();
       for (Location location : this.locations) {
         if (
-          location.alias.toLowerCase().equals(alias.toLowerCase())
-          && location.owner.equals(owner)
+          location.alias.toLowerCase().equals(locationMeta.alias.toLowerCase())
+          && location.owner.equals(locationMeta.owner)
+          && location.dimension.equals(locationMeta.dimension)
         ) {
           removed.add(location);
         }
@@ -240,5 +242,7 @@ public class LocationFile {
       LOGGER.error("Failed to write to location file at " + this.path);
       throw e;
     }
+
+    return removed.size();
   }
 }
