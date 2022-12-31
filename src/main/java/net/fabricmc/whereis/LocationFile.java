@@ -102,6 +102,7 @@ public class LocationFile {
         if (
           location.alias.toLowerCase().equals(newLocation.alias.toLowerCase())
           && location.owner.equals(newLocation.owner)
+          && location.dimension.equals(newLocation.dimension)
         ) {
           String message = String.format(
             "Location %s already exists for %s in %s",

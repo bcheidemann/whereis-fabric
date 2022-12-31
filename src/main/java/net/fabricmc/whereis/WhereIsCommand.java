@@ -131,7 +131,7 @@ public class WhereIsCommand {
                       locationFile,
                       context,
                       owner,
-                      null
+                      "*"
                     );
                   }
                 )

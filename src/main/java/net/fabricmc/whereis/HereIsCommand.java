@@ -9,7 +9,9 @@ import com.mojang.brigadier.context.CommandContext;
 
 import net.fabricmc.whereis.LocationFile.LocationExistsError;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.text.Style;
 import net.minecraft.text.Text;
+import net.minecraft.text.TextColor;
 import net.minecraft.util.math.Vec3d;
 
 import static net.minecraft.server.command.CommandManager.*;
@@ -68,6 +70,15 @@ public class HereIsCommand {
       LOGGER.info("Location not saved: " + alias);
       return -1;
     }
+
+    source.sendFeedback(
+      Text
+        .literal("Added location...")
+        .setStyle(
+          Style.EMPTY.withColor(TextColor.parse("aqua")).withItalic(true)
+        ),
+      false
+    );
 
     return 0;
   }
