@@ -1,5 +1,7 @@
 # WhereIs Fabric Mod
 
+This README is for developers. For usage, see [USAGE.md](USAGE.md).
+
 ## Setup (VS Code)
 
 1. Install the recommended plugins for the repo
