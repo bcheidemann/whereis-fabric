@@ -102,6 +102,7 @@ public class LocationFile {
         if (
           location.alias.toLowerCase().equals(newLocation.alias.toLowerCase())
           && location.owner.equals(newLocation.owner)
+          && location.dimension.equals(newLocation.dimension)
         ) {
           String message = String.format(
             "Location %s already exists for %s in %s",
@@ -126,13 +127,16 @@ public class LocationFile {
   }
 
   // Move location
-  public void moveLocation(Location newLocation) throws IOException {
+  // TODO: Check if the new location already exists (not currently needed so unimplemented)
+  public int moveLocation(LocationMeta previousLocation, Location newLocation) throws IOException {
+    ArrayList<Location> removed = new ArrayList<Location>();
+
     try {
-      ArrayList<Location> removed = new ArrayList<Location>();
       for (Location location : this.locations) {
         if (
-          location.alias.toLowerCase().equals(newLocation.alias.toLowerCase())
-          && location.owner.equals(newLocation.owner)
+          location.alias.toLowerCase().equals(previousLocation.alias.toLowerCase())
+          && location.owner.equals(previousLocation.owner)
+          && location.dimension.equals(previousLocation.dimension)
         ) {
           removed.add(location);
         }
@@ -144,7 +148,7 @@ public class LocationFile {
 
       this.save();
 
-      LOGGER.info("Moved location \"" + newLocation.alias + "\"");
+      LOGGER.info("Moved location \"" + previousLocation.alias + "\" to \"" + newLocation.alias + "\"");
       if (removed.size() > 1) {
         LOGGER.warn("Removed " + (removed.size() - 1) + " duplicate locations");
       }
@@ -153,59 +157,63 @@ public class LocationFile {
       LOGGER.error("Failed to write to location file at " + this.path);
       throw e;
     }
+
+    return removed.size();
   }
 
-  // Find owners locations
-  public ArrayList<Location> findLocations(String owner, String alias, String dimension) {
+  // find locations
+  public ArrayList<Location> findLocations(LocationMeta locationMeta, FindLocationMethod method) {
     ArrayList<Location> foundLocations = new ArrayList<Location>();
 
     for (Location location : this.locations) {
       if (
-        location.alias.toLowerCase().contains(alias.toLowerCase())
-        && location.dimension.equals(dimension)
-        && (owner == null || location.owner.equals(owner))
+        locationMeta.alias != "*"
       ) {
-        foundLocations.add(location);
+        if (
+          method == FindLocationMethod.EXACT__CASE_INSENSITIVE
+          && !location.alias.toLowerCase().equals(locationMeta.alias.toLowerCase())
+        ) {
+          continue;
+        }
+
+        else if (
+          method == FindLocationMethod.FUZZY
+          && !location.alias.toLowerCase().contains(locationMeta.alias.toLowerCase())
+        ) {
+          continue;
+        }
       }
-    }
 
-    return foundLocations;
-  }
-
-  // Find locations
-  public ArrayList<Location> findLocations(String alias, String dimension) {
-    return this.findLocations(null, alias, dimension);
-  }
-
-  // Get all owners locations
-  public ArrayList<Location> getLocations(String owner, String dimesnion) {
-    ArrayList<Location> foundLocations = new ArrayList<Location>();
-
-    for (Location location : this.locations) {
       if (
-        location.dimension.equals(dimesnion)
-        && (owner == null || location.owner.equals(owner))
+        locationMeta.dimension != "*"
+        && !location.dimension.equals(locationMeta.dimension)
       ) {
-        foundLocations.add(location);
+        continue;
       }
+
+      if (
+        locationMeta.owner != "*"
+        && !location.owner.toLowerCase().equals(locationMeta.owner.toLowerCase())
+      ) {
+        continue;
+      }
+
+      foundLocations.add(location);
     }
 
     return foundLocations;
-  }
-
-  // Get all locations
-  public ArrayList<Location> getLocations(String dimesnion) {
-    return this.getLocations(null, dimesnion);
   }
 
   // Remove location
-  public void removeLocation(String owner, String alias, String dimension) throws IOException {
+  public int removeLocation(LocationMeta locationMeta) throws IOException {
+    ArrayList<Location> removed = new ArrayList<Location>();
+
     try {
-      ArrayList<Location> removed = new ArrayList<Location>();
       for (Location location : this.locations) {
         if (
-          location.alias.toLowerCase().equals(alias.toLowerCase())
-          && location.owner.equals(owner)
+          location.alias.toLowerCase().equals(locationMeta.alias.toLowerCase())
+          && location.owner.equals(locationMeta.owner)
+          && location.dimension.equals(locationMeta.dimension)
         ) {
           removed.add(location);
         }
@@ -230,5 +238,7 @@ public class LocationFile {
       LOGGER.error("Failed to write to location file at " + this.path);
       throw e;
     }
+
+    return removed.size();
   }
 }

@@ -1,8 +1,6 @@
 package net.fabricmc.whereis;
 
 import org.json.simple.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Style;
@@ -10,10 +8,7 @@ import net.minecraft.text.Text;
 import net.minecraft.text.TextColor;
 import net.minecraft.util.math.Vec3d;
 
-public class Location {
-  public String owner;
-  public String alias;
-  public String dimension;
+public class Location extends LocationMeta {
   public Vec3d coords;
 
   public Location(
@@ -22,9 +17,7 @@ public class Location {
     String dimension,
     Vec3d coords
   ) {
-    this.owner = owner;
-    this.alias = alias;
-    this.dimension = dimension;
+    super(owner, alias, dimension);
     this.coords = coords;
   }
 
