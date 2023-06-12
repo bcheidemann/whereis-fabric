@@ -41,7 +41,7 @@ public class RelocateCommand {
       + Math.round(position.z)
       + " in dimension "
       + dimension;
-    source.sendFeedback(Text.literal(savingMessage), false);
+    source.sendFeedback(() -> Text.literal(savingMessage), false);
 
     int countMoved;
 
@@ -69,7 +69,7 @@ public class RelocateCommand {
     }
 
     source.sendFeedback(
-      Text
+      () -> Text
         .literal("Moved " + countMoved + " location(s)...")
         .setStyle(
           Style.EMPTY.withColor(TextColor.parse("aqua")).withItalic(true)

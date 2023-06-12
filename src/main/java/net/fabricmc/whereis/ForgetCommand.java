@@ -33,7 +33,7 @@ public class ForgetCommand {
       + alias
       + "\" in dimension "
       + dimension;
-    source.sendFeedback(Text.literal(savingMessage), false);
+    source.sendFeedback(() -> Text.literal(savingMessage), false);
 
     int countRemoved;
 
@@ -55,7 +55,7 @@ public class ForgetCommand {
     }
 
     source.sendFeedback(
-      Text
+      () -> Text
         .literal("Removed " + countRemoved + " location(s)...")
         .setStyle(
           Style.EMPTY.withColor(TextColor.parse("aqua")).withItalic(true)

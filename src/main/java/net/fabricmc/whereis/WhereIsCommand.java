@@ -42,7 +42,7 @@ public class WhereIsCommand {
     }
 
     source.sendFeedback(
-      Text
+      () -> Text
         .literal("Found " + foundLocations.size() + " locations(s)...")
         .setStyle(
           Style.EMPTY.withColor(TextColor.parse("aqua")).withItalic(true)
@@ -51,7 +51,7 @@ public class WhereIsCommand {
     );
 
     for (Location location : foundLocations) {
-      source.sendFeedback(location.toMutableText(), false);
+      source.sendFeedback(() -> location.toMutableText(), false);
     }
 
     return 0;

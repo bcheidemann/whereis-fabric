@@ -42,7 +42,7 @@ public class HereIsCommand {
       + Math.round(position.z)
       + " in dimension "
       + dimension;
-    source.sendFeedback(Text.literal(savingMessage), false);
+    source.sendFeedback(() -> Text.literal(savingMessage), false);
 
     try {
       locationFile.addLocation(
@@ -64,7 +64,7 @@ public class HereIsCommand {
       source.sendError(Text.literal(e.getMessage()));
       source.sendFeedback(
         // TODO: Send command suggestion
-        Text.literal("Location already exists. Did you mean to move the marker to your current location using /relocate?"),
+        () -> Text.literal("Location already exists. Did you mean to move the marker to your current location using /relocate?"),
         false
       );
       LOGGER.info("Location not saved: " + alias);
@@ -72,7 +72,7 @@ public class HereIsCommand {
     }
 
     source.sendFeedback(
-      Text
+      () -> Text
         .literal("Added location...")
         .setStyle(
           Style.EMPTY.withColor(TextColor.parse("aqua")).withItalic(true)
